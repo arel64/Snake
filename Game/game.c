@@ -3,11 +3,10 @@
 //
 
 #include "game.h"
-#define INBOUNDS(X,Y) ((X>=BOARD_SIZE || X < 0 || Y<0 || Y>=BOARD_SIZE)? 1:0)
+#define INBOUNDS(X,Y) ((X>=BOARD_SIZE-1 || X < 1 || Y<1 || Y>=BOARD_SIZE-1)? 1:0)
 
 
 HANDLE hStdout;
-COORD* dwCursorPosition;
 int initGame(Game* g){
     //Score
     g->score = 0;
@@ -29,24 +28,27 @@ int initGame(Game* g){
     g->snake.head->next = NULL;
     g->snake.head->prev = NULL;
 
+
+    //Food
+    initFood(&g->food);
+
     //Init CMD Handlers
-    dwCursorPosition = malloc(sizeof (COORD));
     hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hStdout == INVALID_HANDLE_VALUE ){
         return 1;
     }
-    dwCursorPosition->X = 0;
-    dwCursorPosition->Y = 0;
+
     return 0;
 
 }
 void redraw(Game* g){
     clearBoard(g->board);
     addSnake(g->board,&g->snake);
+    addFood(g->board,g->food);
     printBoard(g);
 }
 int update(Game* g,char direction){
-    //addNodeTail(&g->snake,g->snake.head->posX,g->snake.head->posY);
+
     SnakeNode* iter = g->snake.head;
 
     unsigned tempPosX,prevTempPosX;
@@ -56,6 +58,8 @@ int update(Game* g,char direction){
     tempPosX = g->snake.head->posX;
     tempPosY = g->snake.head->posY;
 
+    //Determine position by last pressed key
+
     if(direction == 'a' || direction == 'd'){
         iter->posX -= direction=='d'? -1:1;
     }
@@ -64,12 +68,29 @@ int update(Game* g,char direction){
         iter->posY -= direction=='s'? -1:1;
     }
 
+
+    //Snake is outside grid
+
     if(INBOUNDS(iter->posX,iter->posY)!= 0){
         return 1;
     }
-    modConsolePos(g->snake.tail->posX,g->snake.tail->posY,' ');
+
+
+    // Food Detection and console snake advance representation
+
+    if(isSnakeIntercepts(&g->snake,g->food.posX,g->food.posY) == 1){
+        modConsolePos(g->food.posX,g->food.posY,'s');
+        repostion(&g->food);
+        addNodeTail(&g->snake,tempPosX,tempPosY);
+        modConsolePos(g->food.posX,g->food.posY,'A');
+
+    }else{
+        modConsolePos(g->snake.tail->posX,g->snake.tail->posY,' ');
+    }
     modConsolePos(iter->posX,iter->posY,'s');
 
+
+    //Advance snake
     iter = iter->prev;
 
     while(iter != NULL){
@@ -82,6 +103,9 @@ int update(Game* g,char direction){
 
         iter = iter->prev;
     }
+    if(isSnakeBodyIntercepts(&g->snake,g->snake.head->posX,g->snake.head->posY) == 1) {
+        return 1;
+    }
     return 0;
 }
 void printBoard(Game* g){
@@ -93,10 +117,10 @@ void printBoard(Game* g){
         printf("\n");
     }
 }
-void modConsolePos(int posX,int posY,char c){
+void modConsolePos(short posX,short posY,char c){
     COORD* temp = malloc(sizeof(COORD));
-    temp->X =posX;
-    temp->Y =posY;
+    temp->X = posX;
+    temp->Y = posY;
     char str[2];
     str[0] = c;
     str[1] ='\0';
@@ -105,4 +129,17 @@ void modConsolePos(int posX,int posY,char c){
 
     WriteConsoleOutputCharacter(hStdout,lpcstr,1,*temp,&numberOfCharsWritten);
     free(temp);
+}
+void destroyGame(Game* g){
+    free(g->board);
+    SnakeNode* iter = g->snake.head;
+    SnakeNode* temp;
+    while(iter != NULL){
+        temp = iter->prev;
+        free(iter);
+        iter = temp;
+    }
+    temp =NULL;
+    free(g);
+    g =NULL;
 }

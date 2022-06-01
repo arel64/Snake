@@ -8,7 +8,7 @@
 pthread_t listenerT;
 pthread_mutex_t mutexNav;
 char lastNavKey = 'a';
-
+char actedNavKey = 'a';
 int isNavKey(char c){
     if(c=='a'||c=='s'||c=='d'||c=='w')
         return 1;
@@ -41,14 +41,23 @@ void* listenKey(void* args){
     int temp;
     while(1){
         temp = getch();
-        if(isNavKey((char)temp) && lastNavKey != (char)temp && isOppositeNav(lastNavKey,temp) != 1){
+        if(
+                isNavKey((char)temp) &&
+                    lastNavKey != (char)temp &&
+                        isOppositeNav(actedNavKey,temp) != 1
+        ){
             pthread_mutex_lock(&mutexNav);
             lastNavKey = (char)temp;
             pthread_mutex_unlock(&mutexNav);
         }
     }
 }
-
+char getNav(){
+    pthread_mutex_lock(&mutexNav);
+    actedNavKey = (char)lastNavKey;
+    pthread_mutex_unlock(&mutexNav);
+    return actedNavKey;
+}
 int initListener() {
 
     if(pthread_mutex_init(&mutexNav, NULL)){

@@ -15,5 +15,7 @@ SnakeNode * insert(Snake*,SnakeNode*);
 void advanceDirection(int);
 int getNextDirection();
 int isBound();
-SnakeNode* addNodeTail(Snake* s,int,int);
+SnakeNode* addNodeTail(Snake*,int,int);
+int isSnakeIntercepts(Snake*,short,short);
+int isSnakeBodyIntercepts(Snake*,short,short);
 #endif //SNAKE_SNAKE_H

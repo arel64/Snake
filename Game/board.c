@@ -3,7 +3,6 @@
 //
 
 #include "board.h"
-#include "snake.h"
 
 void clearBoard(Board b){
     for (int i = 0; i < BOARD_SIZE; ++i) {
@@ -19,8 +18,12 @@ void clearBoard(Board b){
 void addSnake(Board b, Snake* s){
     SnakeNode* iter = s->head;
     do{
-        b[iter->posY][iter->posX] = 's';
+        b[iter->posY][iter->posX] = 's'; //TODO FIGURE OUT WHY THIS WORKS
         iter = iter->prev;
     }while(iter != NULL);
+}
+
+void addFood(Board b, Food f){
+    b[f.posY][f.posX] = 'A';
 }
 

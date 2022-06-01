@@ -15,4 +15,5 @@ int initListener();
 void* listenKey(void* args);
 int isOppositeNav(char a, char b);
 int isNavKey(char c);
+char getNav();
 #endif //SNAKE_KEYLISTENER_H

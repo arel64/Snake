@@ -15,13 +15,15 @@ int main(void) {
    redraw(g);
    addNodeTail(&g->snake,g->snake.head->posX,g->snake.head->posY+1);
    while(1){
-       switch(lastNavKey){
+       char c = getNav();
+       switch(c){
            case 'a':
            case 'd':
            case 'w':
            case 's':
-               if(update(g,lastNavKey) == 1){
-                   break;
+               if(update(g,c) == 1){
+                   destroyGame(g);
+                   exit(1);
                }
                break;
            default:
